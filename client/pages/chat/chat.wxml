@@ -1,0 +1,41 @@
+<view class="chat-container">
+  <!-- 状态栏 -->
+  <view class="status-bar">
+    <text class="status-text">{{statusText}}</text>
+    <view wx:if="{{isAIThinking}}" class="thinking-indicator">
+      <view class="dot"></view>
+      <view class="dot"></view>
+      <view class="dot"></view>
+    </view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollToMessage}}" enhanced show-scrollbar>
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}" class="message-wrapper {{item.role}}">
+      <view class="message-bubble">
+        <text class="message-text">{{item.content}}</text>
+      </view>
+      <text class="message-time">{{item.timestamp}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 录音按钮区域 -->
+  <view class="input-area">
+    <view class="recording-hint" wx:if="{{isRecording}}">
+      <text class="recording-time">{{formatTime(recordingTime)}}</text>
+      <text class="recording-text">松开结束录音</text>
+    </view>
+
+    <button
+      class="voice-btn {{isRecording ? 'recording' : ''}}"
+      bindtouchstart="onTouchStart"
+      bindtouchend="onTouchEnd"
+    >
+      <text class="btn-text">{{isRecording ? '录音中...' : '按住说话'}}</text>
+    </button>
+
+    <button class="finish-btn" bindtap="onGenerateArticle">
+      <text>生成回忆录</text>
+    </button>
+  </view>
+</view>

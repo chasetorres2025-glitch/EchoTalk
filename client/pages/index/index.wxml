@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="welcome-section">
+    <text class="title">EchoTalk</text>
+    <text class="subtitle">您的AI回忆录助手</text>
+    <text class="description">用语音讲述您的故事，AI帮您记录成册</text>
+  </view>
+
+  <view class="action-section">
+    <button class="btn-primary start-btn" bindtap="onStartStory">
+      开始讲故事
+    </button>
+    <button class="btn-secondary view-btn" bindtap="onViewArticles">
+      查看我的文章
+    </button>
+  </view>
+
+  <view class="tips-section">
+    <view class="tip-item">
+      <text class="tip-icon">🎙️</text>
+      <text class="tip-text">语音讲述，自动转写</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-icon">🤖</text>
+      <text class="tip-text">AI引导，挖掘细节</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-icon">📖</text>
+      <text class="tip-text">生成专属回忆录</text>
+    </view>
+  </view>
+</view>

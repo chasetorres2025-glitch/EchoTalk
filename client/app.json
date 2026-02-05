@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/chat/chat",
+    "pages/article/article",
+    "pages/my-articles/my-articles"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "EchoTalk回忆录",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/my-articles/my-articles",
+        "text": "我的文章"
+      }
+    ]
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "需要使用录音功能来记录您的故事"
+    }
+  },
+  "requiredBackgroundModes": ["audio"]
+}

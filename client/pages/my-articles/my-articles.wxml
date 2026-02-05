@@ -1,0 +1,50 @@
+<view class="container">
+  <!-- 空状态 -->
+  <view wx:if="{{!isLoading && articles.length === 0}}" class="empty-section">
+    <text class="empty-icon">📖</text>
+    <text class="empty-title">还没有回忆录</text>
+    <text class="empty-desc">开始讲述您的故事，创建第一篇回忆录吧</text>
+    <button class="btn-primary start-btn" bindtap="onStartNewStory">
+      开始讲故事
+    </button>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:elif="{{isLoading}}" class="loading-section">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 文章列表 -->
+  <view wx:else class="articles-section">
+    <view class="section-header">
+      <text class="section-title">我的文章</text>
+      <text class="article-count">共 {{articles.length}} 篇</text>
+    </view>
+
+    <scroll-view class="article-list" scroll-y enhanced show-scrollbar>
+      <view
+        wx:for="{{articles}}"
+        wx:key="id"
+        class="article-card"
+        bindtap="onArticleTap"
+        data-id="{{item.id}}"
+      >
+        <view class="card-content">
+          <text class="article-title">{{item.title}}</text>
+          <text class="article-preview">{{item.preview}}</text>
+        </view>
+        <view class="card-footer">
+          <text class="article-date">{{formatDate(item.create_time)}}</text>
+          <text class="article-status {{item.status === 2 ? 'saved' : 'draft'}}">
+            {{item.status === 2 ? '已保存' : '草稿'}}
+          </text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <button class="btn-primary new-story-btn" bindtap="onStartNewStory">
+      + 新建回忆录
+    </button>
+  </view>
+</view>

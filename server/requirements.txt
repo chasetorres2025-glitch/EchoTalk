@@ -1,0 +1,10 @@
+Flask==3.0.0
+Flask-CORS==4.0.0
+PyMySQL==1.1.0
+pymongo==4.6.0
+requests==2.31.0
+python-dotenv==1.0.0
+Werkzeug==3.0.1
+
+# 阿里云百炼平台 SDK (语音合成推荐使用)
+dashscope>=1.20.0

@@ -1,0 +1,77 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+}
+
+.welcome-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 100rpx;
+  margin-bottom: 80rpx;
+}
+
+.title {
+  font-size: 72rpx;
+  font-weight: bold;
+  color: #2c2c2c;
+  margin-bottom: 20rpx;
+}
+
+.subtitle {
+  font-size: 44rpx;
+  color: #555;
+  margin-bottom: 30rpx;
+}
+
+.description {
+  font-size: 36rpx;
+  color: #888;
+  text-align: center;
+}
+
+.action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 100rpx;
+}
+
+.start-btn {
+  width: 80%;
+  margin-bottom: 40rpx;
+}
+
+.view-btn {
+  width: 60%;
+}
+
+.tips-section {
+  width: 100%;
+  padding: 0 40rpx;
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 30rpx 40rpx;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.tip-icon {
+  font-size: 48rpx;
+  margin-right: 30rpx;
+}
+
+.tip-text {
+  font-size: 36rpx;
+  color: #333;
+}

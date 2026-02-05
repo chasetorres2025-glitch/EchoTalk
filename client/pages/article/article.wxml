@@ -1,0 +1,55 @@
+<view class="article-container">
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-section">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在生成您的回忆录...</text>
+  </view>
+
+  <!-- 文章内容 -->
+  <view wx:else class="content-section">
+    <!-- 标题 -->
+    <view class="article-header">
+      <text class="article-title">{{article.title}}</text>
+      <text class="article-date">{{article.create_time}}</text>
+    </view>
+
+    <!-- 编辑模式 -->
+    <view wx:if="{{isEditing}}" class="edit-section">
+      <textarea
+        class="edit-textarea"
+        value="{{editContent}}"
+        bindinput="onContentInput"
+        placeholder="编辑您的回忆录..."
+        maxlength="-1"
+        auto-height
+      />
+      <view class="edit-actions">
+        <button class="btn-cancel" bindtap="onCancelEdit">取消</button>
+        <button class="btn-confirm" bindtap="onSaveEdit">保存修改</button>
+      </view>
+    </view>
+
+    <!-- 阅读模式 -->
+    <scroll-view wx:else class="article-content" scroll-y enhanced show-scrollbar>
+      <text class="article-text">{{article.content}}</text>
+    </scroll-view>
+
+    <!-- 操作按钮 -->
+    <view wx:if="{{!isEditing}}" class="action-section">
+      <button class="action-btn {{isPlaying ? 'playing' : ''}}" bindtap="playArticle">
+        <text class="btn-icon">{{isPlaying ? '⏸️' : '▶️'}}</text>
+        <text class="btn-label">{{isPlaying ? '暂停朗读' : '听一听'}}</text>
+      </button>
+
+      <button class="action-btn" bindtap="onEdit">
+        <text class="btn-icon">✏️</text>
+        <text class="btn-label">修改</text>
+      </button>
+
+      <button class="action-btn save-btn" bindtap="onSaveArticle">
+        <text class="btn-icon">💾</text>
+        <text class="btn-label">保存</text>
+      </button>
+    </view>
+  </view>
+</view>
