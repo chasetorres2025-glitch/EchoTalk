@@ -1,50 +1,110 @@
-<view class="container">
+<view class="articles-page">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-bg"></view>
+    <view class="header-content">
+      <text class="page-title">我的文章</text>
+      <text class="page-subtitle" wx:if="{{!isLoading && articles.length > 0}}">共 {{articles.length}} 篇回忆录</text>
+    </view>
+  </view>
+
   <!-- 空状态 -->
-  <view wx:if="{{!isLoading && articles.length === 0}}" class="empty-section">
-    <text class="empty-icon">📖</text>
+  <view wx:if="{{!isLoading && articles.length === 0}}" class="empty-state">
+    <view class="empty-illustration">
+      <view class="empty-circle">
+        <text class="empty-icon">📖</text>
+      </view>
+      <view class="floating-icons">
+        <text class="float-icon icon-1">✨</text>
+        <text class="float-icon icon-2">📝</text>
+        <text class="float-icon icon-3">💭</text>
+      </view>
+    </view>
     <text class="empty-title">还没有回忆录</text>
     <text class="empty-desc">开始讲述您的故事，创建第一篇回忆录吧</text>
-    <button class="btn-primary start-btn" bindtap="onStartNewStory">
-      开始讲故事
+    <button class="btn-primary create-btn" bindtap="onStartNewStory">
+      <text class="btn-icon">🎙️</text>
+      <text>开始讲故事</text>
     </button>
   </view>
 
   <!-- 加载中 -->
-  <view wx:elif="{{isLoading}}" class="loading-section">
+  <view wx:elif="{{isLoading}}" class="loading-state">
     <view class="loading-spinner"></view>
     <text class="loading-text">加载中...</text>
   </view>
 
   <!-- 文章列表 -->
-  <view wx:else class="articles-section">
-    <view class="section-header">
-      <text class="section-title">我的文章</text>
-      <text class="article-count">共 {{articles.length}} 篇</text>
-    </view>
-
-    <scroll-view class="article-list" scroll-y enhanced show-scrollbar>
-      <view
-        wx:for="{{articles}}"
-        wx:key="id"
-        class="article-card"
-        bindtap="onArticleTap"
-        data-id="{{item.id}}"
-      >
-        <view class="card-content">
-          <text class="article-title">{{item.title}}</text>
-          <text class="article-preview">{{item.preview}}</text>
+  <view wx:else class="articles-container">
+    <scroll-view class="articles-list" scroll-y enhanced show-scrollbar>
+      <!-- 统计卡片 -->
+      <view class="stats-card">
+        <view class="stat-item">
+          <text class="stat-number">{{articles.length}}</text>
+          <text class="stat-label">总篇数</text>
         </view>
-        <view class="card-footer">
-          <text class="article-date">{{formatDate(item.create_time)}}</text>
-          <text class="article-status {{item.status === 2 ? 'saved' : 'draft'}}">
-            {{item.status === 2 ? '已保存' : '草稿'}}
-          </text>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{savedCount}}</text>
+          <text class="stat-label">已保存</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{draftCount}}</text>
+          <text class="stat-label">草稿</text>
         </view>
       </view>
+
+      <!-- 文章卡片列表 -->
+      <view class="articles-grid">
+        <view
+          wx:for="{{articles}}"
+          wx:key="id"
+          class="article-item"
+          bindtap="onArticleTap"
+          data-id="{{item.id}}"
+        >
+          <view class="article-card">
+            <!-- 卡片装饰 -->
+            <view class="card-accent {{item.status === 2 ? 'saved' : 'draft'}}"></view>
+            
+            <!-- 卡片内容 -->
+            <view class="card-body">
+              <view class="card-header-row">
+                <text class="article-title">{{item.title || '未命名回忆录'}}</text>
+                <view class="status-tag {{item.status === 2 ? 'saved' : 'draft'}}">
+                  <text class="status-dot"></text>
+                  <text>{{item.status === 2 ? '已保存' : '草稿'}}</text>
+                </view>
+              </view>
+              
+              <text class="article-preview">{{item.preview || '暂无预览内容...'}}</text>
+              
+              <view class="card-footer">
+                <view class="date-info">
+                  <text class="date-icon">📅</text>
+                  <text class="date-text">{{formatDate(item.create_time)}}</text>
+                </view>
+                <view class="action-hint">
+                  <text>查看详情</text>
+                  <text class="arrow">→</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部间距 -->
+      <view style="height: 160rpx;"></view>
     </scroll-view>
 
-    <button class="btn-primary new-story-btn" bindtap="onStartNewStory">
-      + 新建回忆录
-    </button>
+    <!-- 悬浮新建按钮 -->
+    <view class="fab-container">
+      <button class="fab-btn" bindtap="onStartNewStory">
+        <text class="fab-icon">+</text>
+      </button>
+      <text class="fab-label">新建回忆录</text>
+    </view>
   </view>
 </view>

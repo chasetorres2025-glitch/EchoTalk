@@ -7,11 +7,16 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
+    "navigationBarBackgroundColor": "#FEF9F3",
     "navigationBarTitleText": "EchoTalk回忆录",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FEF9F3"
   },
   "tabBar": {
+    "color": "#9CA3AF",
+    "selectedColor": "#FF8C42",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
@@ -28,5 +33,6 @@
       "desc": "需要使用录音功能来记录您的故事"
     }
   },
-  "requiredBackgroundModes": ["audio"]
+  "requiredBackgroundModes": ["audio"],
+  "lazyCodeLoading": "requiredComponents"
 }

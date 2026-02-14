@@ -1,55 +1,99 @@
-<view class="article-container">
+<view class="article-page">
   <!-- 加载状态 -->
-  <view wx:if="{{isLoading}}" class="loading-section">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">正在生成您的回忆录...</text>
+  <view wx:if="{{isLoading}}" class="loading-state">
+    <view class="loading-animation">
+      <view class="spinner-ring"></view>
+      <view class="spinner-ring ring-2"></view>
+      <view class="loading-icon">✨</view>
+    </view>
+    <text class="loading-title">正在生成您的回忆录</text>
+    <text class="loading-desc">AI正在整理您的故事，请稍候...</text>
   </view>
 
   <!-- 文章内容 -->
-  <view wx:else class="content-section">
-    <!-- 标题 -->
+  <view wx:else class="content-wrapper">
+    <!-- 顶部装饰 -->
     <view class="article-header">
-      <text class="article-title">{{article.title}}</text>
-      <text class="article-date">{{article.create_time}}</text>
+      <view class="header-decoration">
+        <view class="deco-circle"></view>
+        <view class="deco-line"></view>
+      </view>
+      
+      <view class="title-section">
+        <view class="title-badge">
+          <text class="badge-icon">📖</text>
+          <text class="badge-text">回忆录</text>
+        </view>
+        <text class="article-title">{{article.title || '未命名回忆录'}}</text>
+        <view class="article-meta">
+          <text class="meta-item">
+            <text class="meta-icon">📅</text>
+            <text>{{article.create_time}}</text>
+          </text>
+          <text class="meta-divider">·</text>
+          <text class="meta-item">
+            <text class="meta-icon">📝</text>
+            <text>{{article.wordCount || 0}} 字</text>
+          </text>
+        </view>
+      </view>
     </view>
 
     <!-- 编辑模式 -->
-    <view wx:if="{{isEditing}}" class="edit-section">
+    <view wx:if="{{isEditing}}" class="edit-mode">
+      <view class="edit-toolbar">
+        <text class="toolbar-title">编辑模式</text>
+        <text class="toolbar-hint">您可以修改文章内容</text>
+      </view>
       <textarea
         class="edit-textarea"
         value="{{editContent}}"
         bindinput="onContentInput"
-        placeholder="编辑您的回忆录..."
+        placeholder="在这里编辑您的回忆录..."
         maxlength="-1"
         auto-height
       />
       <view class="edit-actions">
-        <button class="btn-cancel" bindtap="onCancelEdit">取消</button>
-        <button class="btn-confirm" bindtap="onSaveEdit">保存修改</button>
+        <button class="btn-secondary" bindtap="onCancelEdit">取消</button>
+        <button class="btn-primary" bindtap="onSaveEdit">
+          <text>保存修改</text>
+        </button>
       </view>
     </view>
 
     <!-- 阅读模式 -->
-    <scroll-view wx:else class="article-content" scroll-y enhanced show-scrollbar>
-      <text class="article-text">{{article.content}}</text>
+    <scroll-view wx:else class="article-body" scroll-y enhanced show-scrollbar>
+      <view class="content-card">
+        <text class="article-text">{{article.content}}</text>
+      </view>
+      <!-- 底部间距 -->
+      <view style="height: 160rpx;"></view>
     </scroll-view>
 
-    <!-- 操作按钮 -->
-    <view wx:if="{{!isEditing}}" class="action-section">
-      <button class="action-btn {{isPlaying ? 'playing' : ''}}" bindtap="playArticle">
-        <text class="btn-icon">{{isPlaying ? '⏸️' : '▶️'}}</text>
-        <text class="btn-label">{{isPlaying ? '暂停朗读' : '听一听'}}</text>
-      </button>
+    <!-- 底部操作栏 -->
+    <view wx:if="{{!isEditing}}" class="bottom-bar">
+      <view class="action-bar">
+        <button class="action-item {{isPlaying ? 'active' : ''}}" bindtap="playArticle">
+          <view class="action-icon-wrapper {{isPlaying ? 'playing' : ''}}">
+            <text class="action-icon">{{isPlaying ? '⏸️' : '▶️'}}</text>
+          </view>
+          <text class="action-label">{{isPlaying ? '暂停' : '朗读'}}</text>
+        </button>
 
-      <button class="action-btn" bindtap="onEdit">
-        <text class="btn-icon">✏️</text>
-        <text class="btn-label">修改</text>
-      </button>
+        <button class="action-item" bindtap="onEdit">
+          <view class="action-icon-wrapper">
+            <text class="action-icon">✏️</text>
+          </view>
+          <text class="action-label">编辑</text>
+        </button>
 
-      <button class="action-btn save-btn" bindtap="onSaveArticle">
-        <text class="btn-icon">💾</text>
-        <text class="btn-label">保存</text>
-      </button>
+        <button class="action-item save" bindtap="onSaveArticle">
+          <view class="action-icon-wrapper save">
+            <text class="action-icon">💾</text>
+          </view>
+          <text class="action-label">保存</text>
+        </button>
+      </view>
     </view>
   </view>
 </view>

@@ -20,6 +20,9 @@ def send_message():
         return error('缺少必要参数')
 
     try:
+        # 将 session_id 转换为整数，确保类型一致
+        session_id = int(session_id)
+        
         # 查询用户ID
         user_sql = 'SELECT id FROM user WHERE open_id = %s'
         user = mysql_db.execute(user_sql, (open_id,), fetchone=True)

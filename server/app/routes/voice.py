@@ -33,6 +33,9 @@ def upload_voice():
         return error('缺少必要参数')
 
     try:
+        # 将 session_id 转换为整数，确保类型一致
+        session_id = int(session_id)
+        
         # 生成文件名
         file_ext = voice_file.filename.split('.')[-1] if '.' in voice_file.filename else 'webm'
         file_name = f"{uuid.uuid4().hex}.{file_ext}"

@@ -18,6 +18,9 @@ def generate_article():
         return error('缺少session_id参数')
 
     try:
+        # 将 session_id 转换为整数，确保与 MongoDB 中的数据类型一致
+        session_id = int(session_id)
+        
         # 获取聊天记录
         chat_collection = mongo_db.get_collection('chat_log')
         messages = list(chat_collection.find(

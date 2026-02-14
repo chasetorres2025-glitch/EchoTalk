@@ -1,5 +1,6 @@
 const app = getApp();
 const BASE_URL = app.globalData.baseUrl;
+const WS_URL = app.globalData.wsUrl || BASE_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
 const request = (url, method = 'GET', data = {}) => {
   return new Promise((resolve, reject) => {
@@ -20,6 +21,169 @@ const request = (url, method = 'GET', data = {}) => {
       fail: reject
     });
   });
+};
+
+const createWebSocket = (options) => {
+  const {
+    onConnect,
+    onMessage,
+    onError,
+    onClose,
+    onUserSpeech,
+    onAIResponse,
+    onAIAudio,
+    onAIAudioComplete,
+    onSessionStarted,
+    onSessionStopped,
+    onInterruptAck
+  } = options;
+  
+  let socketTask = null;
+  let isConnected = false;
+  
+  const connect = (sessionId, openId) => {
+    return new Promise((resolve, reject) => {
+      const wsUrl = `${WS_URL}/ws/realtime/${sessionId}/${openId}`;
+      console.log('[WS] 连接地址:', wsUrl);
+      
+      socketTask = wx.connectSocket({
+        url: wsUrl,
+        success: () => {
+          console.log('[WS] 连接中...');
+        },
+        fail: (err) => {
+          console.error('[WS] 连接失败:', err);
+          socketTask = null;
+          isConnected = false;
+          reject(err);
+        }
+      });
+      
+      if (!socketTask) {
+        reject(new Error('创建WebSocket失败'));
+        return;
+      }
+      
+      socketTask.onOpen(() => {
+        console.log('[WS] 连接已打开');
+        isConnected = true;
+        if (onConnect) onConnect();
+        resolve();
+      });
+      
+      socketTask.onMessage((res) => {
+        console.log('[WS] 收到消息:', res.data);
+        const data = res.data;
+        if (onMessage) onMessage(data);
+        
+        try {
+          const msg = JSON.parse(data);
+          const msgType = msg.type;
+          
+          switch (msgType) {
+            case 'session_started':
+              console.log('[WS] 会话已开始');
+              if (onSessionStarted) onSessionStarted(msg);
+              break;
+            case 'user_speech':
+              console.log('[WS] 用户说话:', msg.text);
+              if (onUserSpeech) onUserSpeech(msg);
+              break;
+            case 'ai_response':
+              console.log('[WS] AI回复:', msg.text);
+              if (onAIResponse) onAIResponse(msg);
+              break;
+            case 'ai_audio':
+              if (onAIAudio) onAIAudio(msg);
+              break;
+            case 'ai_audio_complete':
+              console.log('[WS] AI音频完成');
+              if (onAIAudioComplete) onAIAudioComplete(msg);
+              break;
+            case 'session_stopped':
+              console.log('[WS] 会话已停止');
+              if (onSessionStopped) onSessionStopped(msg);
+              break;
+            case 'interrupt_ack':
+              console.log('[WS] 打断确认');
+              if (onInterruptAck) onInterruptAck(msg);
+              break;
+            case 'error':
+              console.error('[WS] 服务器错误:', msg.message);
+              if (onError) onError(msg);
+              break;
+          }
+        } catch (e) {
+          console.log('[WS] 解析消息失败:', e);
+        }
+      });
+      
+      socketTask.onError((err) => {
+        console.error('[WS] 错误:', err);
+        isConnected = false;
+        socketTask = null;
+        if (onError) onError(err);
+        reject(err);
+      });
+      
+      socketTask.onClose(() => {
+        console.log('[WS] 连接已关闭');
+        isConnected = false;
+        socketTask = null;
+        if (onClose) onClose();
+      });
+    });
+  };
+  
+  const send = (data) => {
+    if (!isConnected || !socketTask) {
+      return false;
+    }
+    socketTask.send({
+      data: JSON.stringify(data),
+      success: () => {
+        console.log(`[WS] 发送消息: ${data.type}`);
+      },
+      fail: (err) => {
+        console.error(`[WS] 发送失败:`, err);
+      }
+    });
+    return true;
+  };
+  
+  const sendAudioFrame = (audioBase64) => {
+    send({ type: 'audio_frame', audio: audioBase64 });
+  };
+  
+  const stopSession = () => {
+    send({ type: 'stop_session' });
+  };
+  
+  const sendInterrupt = () => {
+    send({ type: 'user_interrupt' });
+  };
+  
+  const close = () => {
+    if (socketTask) {
+      const task = socketTask;
+      socketTask = null;
+      isConnected = false;
+      try {
+        task.close();
+      } catch (e) {
+        console.log('[WS] 关闭连接时出错:', e);
+      }
+    }
+  };
+  
+  return {
+    connect,
+    sendAudioFrame,
+    stopSession,
+    sendInterrupt,
+    close,
+    isConnected: () => isConnected
+  };
 };
 
 module.exports = {
@@ -59,5 +223,8 @@ module.exports = {
   getUserArticles: (openId) => request(`/api/article/user/${openId}`),
 
   // 语音合成
-  textToSpeech: (text) => request('/api/tts', 'POST', { text })
+  textToSpeech: (text) => request('/api/voice/tts', 'POST', { text }),
+  
+  // WebSocket 实时对话
+  createWebSocket
 };

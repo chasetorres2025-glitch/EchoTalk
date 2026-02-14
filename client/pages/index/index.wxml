@@ -1,31 +1,45 @@
-<view class="container">
-  <view class="welcome-section">
-    <text class="title">EchoTalk</text>
-    <text class="subtitle">您的AI回忆录助手</text>
+<view class="page-container">
+  <!-- 顶部装饰 -->
+  <view class="hero-decoration">
+    <view class="gradient-orb orb-1"></view>
+    <view class="gradient-orb orb-2"></view>
+    <view class="gradient-orb orb-3"></view>
+  </view>
+
+  <!-- 欢迎区域 -->
+  <view class="hero-section animate-fade-in">
+    <view class="logo-wrapper">
+      <text class="logo-icon">📖</text>
+    </view>
+    <text class="app-name">EchoTalk</text>
+    <text class="tagline">您的AI回忆录助手</text>
     <text class="description">用语音讲述您的故事，AI帮您记录成册</text>
   </view>
 
-  <view class="action-section">
+  <!-- 功能特色 -->
+  <view class="features-section animate-fade-in" style="animation-delay: 0.1s;">
+    <view class="feature-card" wx:for="{{features}}" wx:key="index">
+      <view class="feature-icon-wrapper" style="background: {{item.bgColor}};">
+        <text class="feature-icon">{{item.icon}}</text>
+      </view>
+      <text class="feature-title">{{item.title}}</text>
+      <text class="feature-desc">{{item.desc}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section animate-fade-in" style="animation-delay: 0.2s;">
     <button class="btn-primary start-btn" bindtap="onStartStory">
-      开始讲故事
+      <text class="btn-icon">🎙️</text>
+      <text>开始讲故事</text>
     </button>
     <button class="btn-secondary view-btn" bindtap="onViewArticles">
-      查看我的文章
+      <text>查看我的文章</text>
     </button>
   </view>
 
-  <view class="tips-section">
-    <view class="tip-item">
-      <text class="tip-icon">🎙️</text>
-      <text class="tip-text">语音讲述，自动转写</text>
-    </view>
-    <view class="tip-item">
-      <text class="tip-icon">🤖</text>
-      <text class="tip-text">AI引导，挖掘细节</text>
-    </view>
-    <view class="tip-item">
-      <text class="tip-icon">📖</text>
-      <text class="tip-text">生成专属回忆录</text>
-    </view>
+  <!-- 底部装饰文字 -->
+  <view class="footer-section">
+    <text class="footer-text">每一段回忆都值得被珍藏</text>
   </view>
 </view>

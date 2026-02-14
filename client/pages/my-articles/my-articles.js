@@ -5,7 +5,9 @@ Page({
   data: {
     articles: [],
     isLoading: true,
-    hasMore: false
+    hasMore: false,
+    savedCount: 0,
+    draftCount: 0
   },
 
   onLoad() {
@@ -25,7 +27,9 @@ Page({
       if (!openId) {
         this.setData({
           articles: [],
-          isLoading: false
+          isLoading: false,
+          savedCount: 0,
+          draftCount: 0
         });
         return;
       }
@@ -33,9 +37,15 @@ Page({
       const res = await api.getUserArticles(openId);
 
       if (res.code === 0) {
+        const articles = res.data.articles || [];
+        const savedCount = articles.filter(a => a.status === 2).length;
+        const draftCount = articles.filter(a => a.status !== 2).length;
+
         this.setData({
-          articles: res.data.articles || [],
-          isLoading: false
+          articles: articles,
+          isLoading: false,
+          savedCount: savedCount,
+          draftCount: draftCount
         });
       } else {
         throw new Error(res.message);

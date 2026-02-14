@@ -2,7 +2,11 @@ App({
   globalData: {
     userInfo: null,
     openId: null,
-    baseUrl: 'http://localhost:5050'
+    // 开发环境使用本地地址
+    // baseUrl: 'http://localhost:5050'
+    // 生产环境（部署后修改为服务器地址）
+    // 示例: 'https://your-domain.com' 或 'http://你的服务器IP'
+    baseUrl: 'http://127.0.0.1:5050'
   },
 
   onLaunch() {

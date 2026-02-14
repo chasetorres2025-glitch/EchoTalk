@@ -6,5 +6,9 @@ requests==2.31.0
 python-dotenv==1.0.0
 Werkzeug==3.0.1
 
+# WebSocket 支持
+gevent==24.2.1
+gevent-websocket==0.10.1
+
 # 阿里云百炼平台 SDK (语音合成推荐使用)
 dashscope>=1.20.0

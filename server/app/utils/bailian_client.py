@@ -388,22 +388,53 @@ class BailianClient:
                       output_path: Optional[str] = None) -> Optional[Union[str, bytes]]:
         """
         语音合成 (CosyVoice)
-        使用阿里云百炼平台的 HTTP API 进行语音合成
-        
-        Args:
-            text: 要合成的文本
-            model: 模型名称
-            voice: 音色名称
-            speed: 语速 (0.5-2.0)
-            output_path: 输出文件路径，为None则返回音频数据
-            
-        Returns:
-            有output_path时返回文件路径，否则返回音频字节数据
+        使用阿里云百炼平台的 dashscope SDK 进行语音合成
         """
-        # 使用百炼平台的语音合成 API
+        try:
+            import dashscope
+            from dashscope.audio.tts_v2 import SpeechSynthesizer
+            
+            dashscope.api_key = self.api_key
+            
+            synthesizer = SpeechSynthesizer(
+                model=model or self.tts_model,
+                voice=voice or self.tts_voice
+            )
+            
+            audio_data = synthesizer.call(text)
+            
+            if audio_data:
+                if output_path:
+                    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+                    with open(output_path, 'wb') as f:
+                        f.write(audio_data)
+                    return output_path
+                else:
+                    return audio_data
+            else:
+                print(f"语音合成返回空数据")
+                return None
+                
+        except ImportError:
+            print("[TTS] 未安装 dashscope SDK，尝试使用 HTTP API")
+            return self._text_to_speech_http(text, model, voice, speed, output_path)
+        except Exception as e:
+            print(f"语音合成失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _text_to_speech_http(self,
+                           text: str,
+                           model: Optional[str] = None,
+                           voice: Optional[str] = None,
+                           speed: float = 1.0,
+                           output_path: Optional[str] = None) -> Optional[Union[str, bytes]]:
+        """
+        使用 HTTP API 进行语音合成 (备用方案)
+        """
         url = "https://dashscope.aliyuncs.com/api/v1/services/aigc/tts"
         
-        # 构建请求体
         payload = {
             "model": model or self.tts_model,
             "input": {
@@ -430,9 +461,7 @@ class BailianClient:
             if response.status_code == 200:
                 result = response.json()
                 
-                # 检查是否有音频数据
                 if 'output' in result and 'audio' in result['output']:
-                    # Base64 编码的音频数据
                     audio_base64 = result['output']['audio']
                     audio_data = base64.b64decode(audio_base64)
                     
@@ -567,6 +596,153 @@ class BailianClient:
         ]
 
         return self.chat_completion(messages, temperature=0.9)
+
+    def create_realtime_asr_connection(self, 
+                                       on_result: callable,
+                                       on_error: callable = None,
+                                       on_close: callable = None):
+        """
+        创建实时语音识别连接
+        使用阿里云百炼实时语音识别API
+        
+        Args:
+            on_result: 识别结果回调函数
+            on_error: 错误回调函数
+            on_close: 连接关闭回调函数
+            
+        Returns:
+            实时ASR连接对象
+        """
+        try:
+            import dashscope
+            from dashscope.audio.asr import Recognition, RecognitionCallback
+            import gevent
+            
+            dashscope.api_key = self.api_key
+            
+            class RealtimeASRConnection:
+                def __init__(self, api_key, on_result, on_error, on_close):
+                    self.api_key = api_key
+                    self.on_result = on_result
+                    self.on_error = on_error
+                    self.on_close = on_close
+                    self.recognition = None
+                    self._is_running = False
+                
+                def start(self):
+                    dashscope.api_key = self.api_key
+                    
+                    class ASRCallback(RecognitionCallback):
+                        def __init__(self, parent):
+                            self.parent = parent
+                        
+                        def on_open(self):
+                            print("[ASR] 连接已打开")
+                        
+                        def on_close(self):
+                            print("[ASR] 连接已关闭")
+                            if self.parent.on_close:
+                                self.parent.on_close(None)
+                        
+                        def on_event(self, result):
+                            print(f"[ASR] on_event 被调用, result类型: {type(result)}")
+                            
+                            if hasattr(result, 'get_sentence'):
+                                sentence = result.get_sentence()
+                                print(f"[ASR] sentence: {sentence}")
+                                if sentence:
+                                    text = sentence.get('text', '')
+                                    print(f"[ASR] 识别文本: {text}")
+                                    if text and self.parent.on_result:
+                                        gevent.spawn(self.parent.on_result, text, sentence.get('end_time', 0))
+                            else:
+                                print(f"[ASR] result没有get_sentence方法")
+                                if hasattr(result, 'output'):
+                                    print(f"[ASR] result.output: {result.output}")
+                        
+                        def on_error(self, error):
+                            print(f"[ASR] 错误: {error}")
+                            if self.parent.on_error:
+                                self.parent.on_error(str(error))
+                    
+                    callback = ASRCallback(self)
+                    self.recognition = Recognition(
+                        model='paraformer-realtime-v2',
+                        format='pcm',
+                        sample_rate=16000,
+                        language_hints=['zh', 'en'],
+                        callback=callback
+                    )
+                    self._is_running = True
+                    self.recognition.start()
+                
+                def send_audio(self, audio_data: bytes):
+                    if self.recognition and self._is_running:
+                        self.recognition.send_audio_frame(audio_data)
+                
+                def stop(self):
+                    if self.recognition:
+                        self._is_running = False
+                        result = self.recognition.stop()
+                        if self.on_close:
+                            self.on_close(result)
+            
+            return RealtimeASRConnection(self.api_key, on_result, on_error, on_close)
+            
+        except ImportError:
+            print("[RealtimeASR] 未安装 dashscope SDK")
+            if on_error:
+                on_error("未安装 dashscope SDK")
+            return None
+        except Exception as e:
+            print(f"[RealtimeASR] 创建连接失败: {e}")
+            if on_error:
+                on_error(str(e))
+            return None
+
+    def stream_text_to_speech(self, 
+                              text: str,
+                              model: Optional[str] = None,
+                              voice: Optional[str] = None,
+                              on_audio_chunk: callable = None) -> Optional[bytes]:
+        """
+        流式语音合成
+        边生成边返回音频数据
+        
+        Args:
+            text: 要合成的文本
+            model: 模型名称
+            voice: 音色名称
+            on_audio_chunk: 音频块回调函数
+            
+        Returns:
+            完整音频数据
+        """
+        try:
+            import dashscope
+            from dashscope.audio.tts_v2 import SpeechSynthesizer
+            
+            dashscope.api_key = self.api_key
+            
+            synthesizer = SpeechSynthesizer(
+                model=model or self.tts_model,
+                voice=voice or self.tts_voice
+            )
+            
+            audio_data = b''
+            for audio_chunk in synthesizer.stream_call(text):
+                audio_data += audio_chunk
+                if on_audio_chunk:
+                    on_audio_chunk(audio_chunk)
+            
+            return audio_data
+            
+        except ImportError:
+            print("[StreamTTS] 未安装 dashscope SDK")
+            return None
+        except Exception as e:
+            print(f"[StreamTTS] 流式语音合成失败: {e}")
+            return None
 
 
 # 创建客户端实例

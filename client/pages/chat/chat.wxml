@@ -1,41 +1,151 @@
-<view class="chat-container">
-  <!-- 状态栏 -->
-  <view class="status-bar">
-    <text class="status-text">{{statusText}}</text>
-    <view wx:if="{{isAIThinking}}" class="thinking-indicator">
-      <view class="dot"></view>
-      <view class="dot"></view>
-      <view class="dot"></view>
+<view class="chat-page">
+  <!-- 顶部状态栏 -->
+  <view class="chat-header">
+    <view class="header-decoration"></view>
+    <view class="status-wrapper">
+      <view class="status-badge {{isAIThinking || isAISpeaking ? 'thinking' : 'ready'}}">
+        <view class="status-dot"></view>
+        <text class="status-text">{{statusText}}</text>
+      </view>
+      <view wx:if="{{isAIThinking || isAISpeaking}}" class="thinking-dots">
+        <view class="dot"></view>
+        <view class="dot"></view>
+        <view class="dot"></view>
+      </view>
+    </view>
+    <view class="header-actions">
+      <view class="mode-toggle" bindtap="toggleMode">
+        <text class="mode-icon">{{mode === 'realtime' ? '📞' : '🎙️'}}</text>
+        <text class="mode-label">{{mode === 'realtime' ? '实时对话' : '按住说话'}}</text>
+      </view>
+      <view class="mode-hint" wx:if="{{mode === 'push'}}">
+        <text bindtap="onSwitchToRealtime" class="switch-link">切换到实时对话</text>
+      </view>
     </view>
   </view>
 
   <!-- 消息列表 -->
-  <scroll-view class="message-list" scroll-y scroll-into-view="{{scrollToMessage}}" enhanced show-scrollbar>
-    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}" class="message-wrapper {{item.role}}">
-      <view class="message-bubble">
-        <text class="message-text">{{item.content}}</text>
+  <scroll-view 
+    class="message-list" 
+    scroll-y 
+    scroll-into-view="{{scrollToMessage}}" 
+    enhanced 
+    show-scrollbar
+    scroll-with-animation
+  >
+    <view class="message-container">
+      <!-- 欢迎消息 -->
+      <view class="welcome-message" wx:if="{{messages.length === 0}}">
+        <view class="welcome-card">
+          <text class="welcome-icon">👋</text>
+          <text class="welcome-title">欢迎来到 EchoTalk</text>
+          <text class="welcome-desc">{{mode === 'realtime' ? '实时对话模式已开启，请直接开始讲述您的故事~' : '请按住下方的麦克风按钮，开始讲述您的故事吧~'}}</text>
+        </view>
       </view>
-      <text class="message-time">{{item.timestamp}}</text>
+
+      <!-- 消息气泡 -->
+      <view 
+        wx:for="{{messages}}" 
+        wx:key="id" 
+        id="msg-{{item.id}}" 
+        class="message-row {{item.role}}"
+      >
+        <view class="message-avatar {{item.role}}">
+          <text>{{item.role === 'user' ? '👤' : '🤖'}}</text>
+        </view>
+        <view class="message-content">
+          <view class="message-bubble {{item.role}}">
+            <text class="message-text">{{item.content}}</text>
+          </view>
+          <text class="message-time">{{item.timestamp}}</text>
+        </view>
+      </view>
     </view>
+    
+    <!-- 底部占位 -->
+    <view id="message-bottom" style="height: 40rpx;"></view>
   </scroll-view>
 
-  <!-- 录音按钮区域 -->
-  <view class="input-area">
-    <view class="recording-hint" wx:if="{{isRecording}}">
-      <text class="recording-time">{{formatTime(recordingTime)}}</text>
-      <text class="recording-text">松开结束录音</text>
+  <!-- 输入区域 -->
+  <view class="input-section">
+    <!-- 实时对话模式 -->
+    <block wx:if="{{mode === 'realtime'}}">
+      <!-- 聆听状态指示 -->
+      <view class="realtime-panel">
+        <view class="listening-indicator {{isListening ? 'active' : ''}}">
+          <view class="volume-bars">
+            <view class="volume-bar" style="height: {{volumeLevel * 0.5}}rpx;"></view>
+            <view class="volume-bar" style="height: {{volumeLevel * 0.8}}rpx;"></view>
+            <view class="volume-bar" style="height: {{volumeLevel}}rpx;"></view>
+            <view class="volume-bar" style="height: {{volumeLevel * 0.8}}rpx;"></view>
+            <view class="volume-bar" style="height: {{volumeLevel * 0.5}}rpx;"></view>
+          </view>
+          <text class="listening-text">{{isAISpeaking ? 'AI正在回复...' : (isListening ? '正在聆听...' : '准备就绪')}}</text>
+        </view>
+        
+        <!-- AI说话状态 -->
+        <view class="ai-speaking-indicator" wx:if="{{isAISpeaking}}">
+          <view class="speaking-animation">
+            <view class="pulse-ring"></view>
+            <view class="pulse-ring delay-1"></view>
+            <view class="pulse-ring delay-2"></view>
+          </view>
+          <text class="speaking-text">AI正在回复，您可以随时打断</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="action-bar realtime">
+        <button 
+          class="finish-btn {{messages.length < 3 ? 'disabled' : ''}}" 
+          bindtap="onGenerateArticle"
+          disabled="{{messages.length < 3}}"
+        >
+          <text class="finish-icon">✨</text>
+          <text>生成回忆录</text>
+        </button>
+      </view>
+    </block>
+
+    <!-- 按住说话模式 -->
+    <block wx:else>
+      <!-- 录音中提示 -->
+      <view class="recording-panel" wx:if="{{isRecording}}">
+        <view class="recording-animation">
+          <view class="wave wave-1"></view>
+          <view class="wave wave-2"></view>
+          <view class="wave wave-3"></view>
+        </view>
+        <text class="recording-time">{{formatTime(recordingTime)}}</text>
+        <text class="recording-tip">松开结束录音</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="action-bar">
+        <button 
+          class="voice-btn {{isRecording ? 'recording' : ''}}" 
+          bindtouchstart="onTouchStart"
+          bindtouchend="onTouchEnd"
+        >
+          <view class="btn-inner">
+            <text class="btn-icon">{{isRecording ? '🔴' : '🎙️'}}</text>
+            <text class="btn-label">{{isRecording ? '录音中' : '按住说话'}}</text>
+          </view>
+        </button>
+
+        <button 
+          class="finish-btn {{messages.length < 3 ? 'disabled' : ''}}" 
+          bindtap="onGenerateArticle"
+          disabled="{{messages.length < 3}}"
+        >
+          <text class="finish-icon">✨</text>
+          <text>生成回忆录</text>
+        </button>
+      </view>
+    </block>
+    
+    <view class="hint-text" wx:if="{{messages.length < 3}}">
+      <text>至少对话3轮后可生成回忆录</text>
     </view>
-
-    <button
-      class="voice-btn {{isRecording ? 'recording' : ''}}"
-      bindtouchstart="onTouchStart"
-      bindtouchend="onTouchEnd"
-    >
-      <text class="btn-text">{{isRecording ? '录音中...' : '按住说话'}}</text>
-    </button>
-
-    <button class="finish-btn" bindtap="onGenerateArticle">
-      <text>生成回忆录</text>
-    </button>
   </view>
 </view>
